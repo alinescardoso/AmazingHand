@@ -1,0 +1,2 @@
+[console_scripts]
+AHSimulation = mj_mink_right.main:main

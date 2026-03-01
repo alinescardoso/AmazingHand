@@ -1,0 +1,14 @@
+Metadata-Version: 2.4
+Name: HandTracking
+Version: 0.1.0
+Summary: Add your description here
+Requires-Python: <=3.12,>=3.9
+Description-Content-Type: text/markdown
+Requires-Dist: dora-rs>=0.4.1
+Requires-Dist: loop-rate-limiters>=1.1.2
+Requires-Dist: mediapipe<=0.10.15,>=0.10.14
+Requires-Dist: opencv-python
+
+# Hand tracking node
+
+Opens the webcam and track the (right) hand keypoints using Mediapipe.

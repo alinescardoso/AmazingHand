@@ -8,14 +8,14 @@ Side = 1 # 1=> Right Hand // 2=> Left Hand
 
 
 #Speed
-MaxSpeed = 7
+MaxSpeed = 6
 CloseSpeed = 3
 
 #Fingers middle poses
-MiddlePos = [3, 0, -5, -8, -2, 5, -12, 0] # replace values by your calibration results
+MiddlePos = [0, 0, 0, 0, 4, 0, -5, 1] # replace values by your calibration results
 
 c = Scs0009PyController(
-        serial_port="COM11",
+        serial_port="COM8",
         baudrate=1000000,
         timeout=0.5,
     )
@@ -72,8 +72,8 @@ def main():
         Pinched()
         time.sleep(1)
 
-        Fuck()
-        time.sleep(0.8)
+        # Fuck()
+        # time.sleep(0.8)
 
 
         #trials

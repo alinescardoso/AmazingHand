@@ -1,0 +1,2 @@
+[console_scripts]
+HandTracking = hand_tracker.main:main

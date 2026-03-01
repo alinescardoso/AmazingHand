@@ -1,0 +1,4 @@
+dora-rs>=0.4.1
+loop-rate-limiters>=1.1.2
+mediapipe<=0.10.15,>=0.10.14
+opencv-python

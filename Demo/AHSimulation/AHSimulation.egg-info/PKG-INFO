@@ -1,0 +1,22 @@
+Metadata-Version: 2.4
+Name: AHSimulation
+Version: 0.1.0
+Summary: Add your description here
+Requires-Python: >=3.12
+Description-Content-Type: text/markdown
+Requires-Dist: dora-rs>=0.4.1
+Requires-Dist: loop-rate-limiters>=1.1.2
+Requires-Dist: mink>=0.0.11
+Requires-Dist: mujoco>=3.3.2
+Requires-Dist: onshape-to-robot>=1.7.5
+Requires-Dist: qpsolvers[quadprog]>=4.7.1
+
+# Mujoco simulation of the hand
+
+Contains the Mujoco model and assets along with a Python node which sets the inverse kinematics problem.
+
+[Mink](https://github.com/kevinzakka/mink) is used to solve the IK as a QP problem.
+
+We can chose to either control the fingertips position (useful for the hand tracking demo) or the distal phalanges orientation.
+
+The AmazingHand model was exported from CAD using [onshape-to-robot](https://github.com/Rhoban/onshape-to-robot)

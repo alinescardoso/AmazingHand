@@ -1,0 +1,6 @@
+dora-rs>=0.4.1
+loop-rate-limiters>=1.1.2
+mink>=0.0.11
+mujoco>=3.3.2
+onshape-to-robot>=1.7.5
+qpsolvers[quadprog]>=4.7.1

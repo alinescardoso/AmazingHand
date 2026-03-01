@@ -1,0 +1,10 @@
+README.md
+pyproject.toml
+HandTracking/__init__.py
+HandTracking/main.py
+HandTracking.egg-info/PKG-INFO
+HandTracking.egg-info/SOURCES.txt
+HandTracking.egg-info/dependency_links.txt
+HandTracking.egg-info/entry_points.txt
+HandTracking.egg-info/requires.txt
+HandTracking.egg-info/top_level.txt
