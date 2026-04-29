@@ -15,7 +15,77 @@ mp_hands = mp.solutions.hands
 
 # https://mediapipe.readthedocs.io/en/latest/solutions/hands.html
 
-def process_img(hand_proc, image):
+
+class CalibrationState:
+    """Captures min/max of each finger tip vector during calibration,
+    then normalizes output so the human hand's range maps to the
+    Amazing Hand's full range."""
+
+    def __init__(self, target_scale=1.3):
+        self.active = False
+        self.calibrated = False
+        self.target_scale = target_scale
+        # min/max per tip (4 fingers, 3 axes each)
+        self.tips_min = [np.full(3, np.inf) for _ in range(4)]
+        self.tips_max = [np.full(3, -np.inf) for _ in range(4)]
+        self.sample_count = 0
+
+    def start(self):
+        self.active = True
+        self.calibrated = False
+        self.tips_min = [np.full(3, np.inf) for _ in range(4)]
+        self.tips_max = [np.full(3, -np.inf) for _ in range(4)]
+        self.sample_count = 0
+        print("[Calibration] Started — open and close your hand 3 times, then press 'c' to finish")
+
+    def update(self, tips):
+        """Update min/max with current tip values. tips: list of 4 np.arrays (tip1..tip4)."""
+        for i, tip in enumerate(tips):
+            self.tips_min[i] = np.minimum(self.tips_min[i], tip)
+            self.tips_max[i] = np.maximum(self.tips_max[i], tip)
+        self.sample_count += 1
+
+    def finish(self):
+        self.active = False
+        if self.sample_count < 10:
+            print("[Calibration] Not enough samples, calibration discarded.")
+            return
+        self.calibrated = True
+        for i in range(4):
+            rng = self.tips_max[i] - self.tips_min[i]
+            print(f"[Calibration] Finger {i+1}: min={self.tips_min[i]}, max={self.tips_max[i]}, range={rng}")
+        print(f"[Calibration] Finished! target_scale={self.target_scale}  samples={self.sample_count}")
+
+    def apply(self, tip, finger_idx):
+        """Normalize tip using calibration data and scale to expanded target range."""
+        if not self.calibrated:
+            return tip
+        raw_range = self.tips_max[finger_idx] - self.tips_min[finger_idx]
+        # avoid division by zero on axes with no movement
+        safe_range = np.where(np.abs(raw_range) < 1e-6, 1.0, raw_range)
+        normalized = (tip - self.tips_min[finger_idx]) / safe_range  # [0, 1]
+        normalized = np.clip(normalized, -0.1, 1.1)  # allow small overshoot
+        # remap to expanded range
+        target_range = raw_range * self.target_scale
+        return self.tips_min[finger_idx] + normalized * target_range
+
+    def draw_overlay(self, image):
+        """Draw calibration status on the image."""
+        h, w = image.shape[:2]
+        if self.active:
+            cv2.rectangle(image, (0, 0), (w, 40), (0, 0, 180), -1)
+            cv2.putText(image, f"CALIBRATING  (samples: {self.sample_count})  |  Open/close hand 3x, then press 'c'",
+                        (10, 28), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 255), 2)
+        elif self.calibrated:
+            cv2.rectangle(image, (0, 0), (w, 30), (0, 120, 0), -1)
+            cv2.putText(image, f"CALIBRATED  (scale: {self.target_scale:.1f})  |  Press 'c' to re-calibrate",
+                        (10, 22), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+        else:
+            cv2.putText(image, "Press 'c' to calibrate", (10, 22), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (200, 200, 200), 1)
+        return image
+
+
+def process_img(hand_proc, image, calibration=None):
     image.flags.writeable = False
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     results = hand_proc.process(image)
@@ -63,9 +133,9 @@ def process_img(hand_proc, image):
               tip2_y=hand_landmarks.landmark[mp_hands.HandLandmark.MIDDLE_FINGER_TIP].y-hand_landmarks.landmark[mp_hands.HandLandmark.MIDDLE_FINGER_MCP].y
               tip2_z=hand_landmarks.landmark[mp_hands.HandLandmark.MIDDLE_FINGER_TIP].z-hand_landmarks.landmark[mp_hands.HandLandmark.MIDDLE_FINGER_MCP].z
 
-              tip3_x=hand_landmarks.landmark[mp_hands.HandLandmark.RING_FINGER_TIP].x-hand_landmarks.landmark[mp_hands.HandLandmark.RING_FINGER_MCP].x
-              tip3_y=hand_landmarks.landmark[mp_hands.HandLandmark.RING_FINGER_TIP].y-hand_landmarks.landmark[mp_hands.HandLandmark.RING_FINGER_MCP].y
-              tip3_z=hand_landmarks.landmark[mp_hands.HandLandmark.RING_FINGER_TIP].z-hand_landmarks.landmark[mp_hands.HandLandmark.RING_FINGER_MCP].z
+              tip3_x=hand_landmarks.landmark[mp_hands.HandLandmark.PINKY_TIP].x-hand_landmarks.landmark[mp_hands.HandLandmark.PINKY_MCP].x
+              tip3_y=hand_landmarks.landmark[mp_hands.HandLandmark.PINKY_TIP].y-hand_landmarks.landmark[mp_hands.HandLandmark.PINKY_MCP].y
+              tip3_z=hand_landmarks.landmark[mp_hands.HandLandmark.PINKY_TIP].z-hand_landmarks.landmark[mp_hands.HandLandmark.PINKY_MCP].z
 
               tip4_x=hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_TIP].x-hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_MCP].x
               tip4_y=hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_TIP].y-hand_landmarks.landmark[mp_hands.HandLandmark.THUMB_MCP].y
@@ -153,6 +223,16 @@ def process_img(hand_proc, image):
               tip3=R@np.array([tip3_x,tip3_y,tip3_z])
               tip4=R@np.array([tip4_x,tip4_y,tip4_z])
 
+              # --- Calibration: update or apply ---
+              if calibration is not None:
+                  if calibration.active:
+                      calibration.update([tip1, tip2, tip3, tip4])
+                  elif calibration.calibrated:
+                      tip1 = calibration.apply(tip1, 0)
+                      tip2 = calibration.apply(tip2, 1)
+                      tip3 = calibration.apply(tip3, 2)
+                      tip4 = calibration.apply(tip4, 3)
+
               # scale=0.01
               # image = cv2.drawFrameAxes(image, K, disto, rotV, origin, scale)
 
@@ -174,7 +254,9 @@ def main():
 
 
     pa.array([])  # initialize pyarrow array
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(1)
+
+    calibration = CalibrationState(target_scale=1.3)
 
     with mp_hands.Hands(
             model_complexity=0,
@@ -198,16 +280,23 @@ def main():
 
                     frame = cv2.flip(frame, 1)
                     #process
-                    frame,r_res,l_res=process_img(hands,frame)
+                    frame,r_res,l_res=process_img(hands,frame,calibration)
 
-                    if r_res is not None:
+                    if r_res is not None and not calibration.active:
                         node.send_output('r_hand_pos',pa.array(r_res))
-                    if l_res is not None:
+                    if l_res is not None and not calibration.active:
                         node.send_output('l_hand_pos',pa.array(l_res))
                     # cv2.imshow('MediaPipe Hands', cv2.flip(frame, 1))
+                    calibration.draw_overlay(frame)
                     cv2.imshow('MediaPipe Hands', frame)
-                    if cv2.waitKey(1) & 0xFF == ord("q"):
+                    key = cv2.waitKey(1) & 0xFF
+                    if key == ord("q"):
                         break
+                    elif key == ord("c"):
+                        if calibration.active:
+                            calibration.finish()
+                        else:
+                            calibration.start()
 
 
             elif event_type == "ERROR":

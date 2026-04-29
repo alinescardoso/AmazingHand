@@ -93,8 +93,8 @@ fn main() -> Result<(), Box<dyn Error>> {
         finger_names.push(motors.finger_name.clone());
         motor_ids.push(motors.motor1.id);
         motor_ids.push(motors.motor2.id);
-        motor_offsets.push(motors.motor1.offset);
-        motor_offsets.push(motors.motor2.offset);
+        motor_offsets.push(motors.motor1.offset.to_radians());
+        motor_offsets.push(motors.motor2.offset.to_radians());
     }
     let motors_on: Vec<u8> = vec![1; motor_ids.len()];
     let motors_off: Vec<u8> = vec![0; motor_ids.len()];
@@ -144,12 +144,12 @@ fn main() -> Result<(), Box<dyn Error>> {
                             motors_ids.push(finger.motor1.id);
                             motors_ids.push(finger.motor2.id);
 
-                            let mut m1goal = buffer[finger1_idx[0] as usize] + finger.motor1.offset;
+                            let mut m1goal = buffer[finger1_idx[0] as usize] + finger.motor1.offset.to_radians();
                             if finger.motor1.invert {
                                 m1goal = -m1goal;
                             }
                             motors_goalpos.push(m1goal);
-                            let mut m2goal = buffer[finger1_idx[1] as usize] + finger.motor2.offset;
+                            let mut m2goal = buffer[finger1_idx[1] as usize] + finger.motor2.offset.to_radians();
                             if finger.motor2.invert {
                                 m2goal = -m2goal;
                             }

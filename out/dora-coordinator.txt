@@ -1,0 +1,8 @@
+{"timestamp":"2026-03-02T19:41:44.978703Z","level":"INFO","fields":{"message":"received ctrlc signal"},"target":"dora_coordinator"}
+{"timestamp":"2026-03-02T19:41:44.979400Z","level":"INFO","fields":{"message":"Destroying coordinator after receiving Ctrl-C signal"},"target":"dora_coordinator"}
+{"timestamp":"2026-03-05T15:44:35.328285Z","level":"INFO","fields":{"message":"received ctrlc signal"},"target":"dora_coordinator"}
+{"timestamp":"2026-03-05T15:44:35.329325Z","level":"INFO","fields":{"message":"Destroying coordinator after receiving Ctrl-C signal"},"target":"dora_coordinator"}
+{"timestamp":"2026-04-29T13:28:26.317392Z","level":"INFO","fields":{"message":"received ctrlc signal"},"target":"dora_coordinator"}
+{"timestamp":"2026-04-29T13:28:26.318287Z","level":"INFO","fields":{"message":"Destroying coordinator after receiving Ctrl-C signal"},"target":"dora_coordinator"}
+{"timestamp":"2026-04-29T14:12:36.960109Z","level":"INFO","fields":{"message":"received ctrlc signal"},"target":"dora_coordinator"}
+{"timestamp":"2026-04-29T14:12:36.961095Z","level":"INFO","fields":{"message":"Destroying coordinator after receiving Ctrl-C signal"},"target":"dora_coordinator"}
