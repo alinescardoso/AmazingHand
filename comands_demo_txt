@@ -1,0 +1,7 @@
+uv run PythonExample/AmazingHand_Demo.py
+
+dora up
+
+dora build Demo/dataflow_tracking_real.yml --uv
+
+dora run Demo/dataflow_tracking_real.yml --uv

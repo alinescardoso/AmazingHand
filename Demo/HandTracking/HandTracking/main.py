@@ -252,18 +252,22 @@ def main():
 
     node = Node()
 
-
     pa.array([])  # initialize pyarrow array
-    cap = cv2.VideoCapture(1)
+    cap = cv2.VideoCapture(0)
+    # cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+    # cap.set(cv2.CAP_PROP_FRAME_WIDTH, 480)
+    # cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 240)
 
     calibration = CalibrationState(target_scale=1.3)
+
+    # Parâmetro: intervalo mínimo entre processamentos (segundos)
+    PROCESS_INTERVAL = 0.02  # 20 Hz (ajuste conforme necessário: 0.033=30Hz, 0.1=10Hz)
+    last_process_time = 0.0
 
     with mp_hands.Hands(
             model_complexity=0,
             min_detection_confidence=0.5,
-            min_tracking_confidence=0.5) as hands:
-
-
+            min_tracking_confidence=0.5, max_num_hands=1) as hands:
 
         for event in node:
 
@@ -273,22 +277,28 @@ def main():
                 event_id = event["id"]
 
                 if event_id == "tick":
-                    ret, frame = cap.read()
+                    now = time.monotonic()
 
+                    # Sempre consumir o frame para esvaziar o buffer
+                    cap.grab()
+
+                    # Só processa se passou o intervalo
+                    if (now - last_process_time) < PROCESS_INTERVAL:
+                        continue
+
+                    last_process_time = now
+                    ret, frame = cap.retrieve()
                     if not ret:
                         continue
 
                     frame = cv2.flip(frame, 1)
-                    #process
-                    frame,r_res,l_res=process_img(hands,frame,calibration)
+                    image, r_res, l_res = process_img(hands, frame, calibration)
 
-                    if r_res is not None and not calibration.active:
-                        node.send_output('r_hand_pos',pa.array(r_res))
-                    if l_res is not None and not calibration.active:
-                        node.send_output('l_hand_pos',pa.array(l_res))
-                    # cv2.imshow('MediaPipe Hands', cv2.flip(frame, 1))
-                    calibration.draw_overlay(frame)
-                    cv2.imshow('MediaPipe Hands', frame)
+                    if r_res is not None:
+                        node.send_output("r_hand_pos", pa.array(r_res))
+
+                    calibration.draw_overlay(image)
+                    cv2.imshow("MediaPipe Hands", image)
                     key = cv2.waitKey(1) & 0xFF
                     if key == ord("q"):
                         break
@@ -298,9 +308,12 @@ def main():
                         else:
                             calibration.start()
 
-
             elif event_type == "ERROR":
-                raise RuntimeError(event["error"])
+                print(f"[ERROR] {event}")
+                break
+
+    cap.release()
+    cv2.destroyAllWindows()
 
 
 if __name__ == "__main__":

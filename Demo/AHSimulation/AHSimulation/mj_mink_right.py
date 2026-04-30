@@ -119,7 +119,7 @@ class Client:
 
         self.model = self.configuration.model
         self.data = self.configuration.data
-        self.solver = "quadprog"
+        self.solver = "daqp"
 
         self.motor_pos=[]
         self.metadata=[]
@@ -127,7 +127,7 @@ class Client:
 
     def run(self):
         """TODO: Add docstring."""
-        with mujoco.viewer.launch_passive(self.model, self.data) as viewer:
+        with mujoco.viewer.launch_passive(self.model, self.data, show_left_ui=False, show_right_ui=False) as viewer:
 
             rate = RateLimiter(frequency=1000.0)
             # dt = rate.dt

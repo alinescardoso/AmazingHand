@@ -11,7 +11,7 @@ MiddlePos_2 = 1 #Middle position for servo ID_2
 
 
 c = Scs0009PyController(
-        serial_port="COM8",
+        serial_port="/dev/ttyACM0",
         baudrate=1000000,
         timeout=0.5,
     )
