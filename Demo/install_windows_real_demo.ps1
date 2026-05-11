@@ -100,6 +100,29 @@ function Ensure-PythonRuntime {
     }
 }
 
+function Ensure-UvCli {
+    if (Test-CommandExists "uv") {
+        Write-Host "[OK] uv ja esta instalado."
+        return
+    }
+
+    Ensure-WingetPackage -CommandName "uv" -WingetId "astral-sh.uv" -DisplayName "uv"
+
+    if (Test-CommandExists "uv") {
+        return
+    }
+
+    if (Test-CommandExists "python") {
+        Write-Warning "uv nao ficou disponivel via winget nesta sessao. Tentando via pip --user..."
+        python -m pip install --user uv
+        Add-ToSessionPathIfExists "$env:APPDATA\Python\Python312\Scripts"
+    }
+
+    if (-not (Test-CommandExists "uv")) {
+        throw "Nao foi possivel disponibilizar o comando uv automaticamente."
+    }
+}
+
 function Sync-UvProject {
     param([Parameter(Mandatory = $true)][string]$ProjectPath)
 
@@ -308,7 +331,7 @@ try {
     Write-Host "[INFO] Preparando ambiente para demo=$selectedDemo camera=$CameraIndex porta=$ComPort"
 
     Ensure-WingetPackage -CommandName "rustup" -WingetId "Rustlang.Rustup" -DisplayName "Rust"
-    Ensure-WingetPackage -CommandName "uv" -WingetId "astral-sh.uv" -DisplayName "uv"
+    Ensure-UvCli
 
     Add-ToSessionPathIfExists "$env:USERPROFILE\.cargo\bin"
     Add-ToSessionPathIfExists "$env:USERPROFILE\.local\bin"
