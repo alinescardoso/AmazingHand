@@ -26,8 +26,10 @@ From `Demo/`, run:
 
 This script:
 - installs Rust and uv (via winget, if missing)
+- installs Python 3.12 if missing
 - installs dora-rs-cli
 - creates the Python 3.12 virtual environment (`uv venv --python 3.12`)
+- runs `uv sync` for Python modules (`HandTracking` and `AHSimulation`)
 - lets you choose the available demo (`dataflow_*.yml`)
 - lets you choose an available COM port (for demos that require serial)
 - lets you choose a camera index (for demos that use HandTracking)

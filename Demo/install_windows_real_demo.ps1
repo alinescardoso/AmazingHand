@@ -75,6 +75,49 @@ function Ensure-DoraCli {
     }
 }
 
+function Ensure-PythonRuntime {
+    param([Parameter(Mandatory = $true)][string]$Version)
+
+    if (Test-CommandExists "python") {
+        Write-Host "[OK] Python ja esta instalado."
+        return
+    }
+
+    Write-Host "[INFO] Python nao encontrado. Tentando instalar com uv python install $Version..."
+    try {
+        uv python install $Version
+    }
+    catch {
+        Write-Warning "Falha ao instalar Python com uv. Tentando winget..."
+    }
+
+    if (-not (Test-CommandExists "python")) {
+        Ensure-WingetPackage -CommandName "python" -WingetId "Python.Python.3.12" -DisplayName "Python 3.12"
+    }
+
+    if (-not (Test-CommandExists "python")) {
+        throw "Python nao foi encontrado apos as tentativas de instalacao."
+    }
+}
+
+function Sync-UvProject {
+    param([Parameter(Mandatory = $true)][string]$ProjectPath)
+
+    $pyproject = Join-Path $ProjectPath "pyproject.toml"
+    if (-not (Test-Path $pyproject)) {
+        return
+    }
+
+    Write-Host "[INFO] Sincronizando dependencias com uv sync em $ProjectPath"
+    Push-Location $ProjectPath
+    try {
+        uv sync
+    }
+    finally {
+        Pop-Location
+    }
+}
+
 function Update-DataflowComPort {
     param(
         [Parameter(Mandatory = $true)][string]$DataflowPath,
@@ -270,6 +313,7 @@ try {
     Add-ToSessionPathIfExists "$env:USERPROFILE\.cargo\bin"
     Add-ToSessionPathIfExists "$env:USERPROFILE\.local\bin"
 
+    Ensure-PythonRuntime -Version $PythonVersion
     Ensure-DoraCli
 
     $venvPython = Join-Path $scriptDir ".venv\Scripts\python.exe"
@@ -280,6 +324,9 @@ try {
         Write-Host "[INFO] Criando ambiente virtual Python ($PythonVersion)..."
         uv venv --python $PythonVersion
     }
+
+    Sync-UvProject -ProjectPath (Join-Path $scriptDir "HandTracking")
+    Sync-UvProject -ProjectPath (Join-Path $scriptDir "AHSimulation")
 
     if ($needsComPort) {
         if ([string]::IsNullOrWhiteSpace($ComPort)) {
