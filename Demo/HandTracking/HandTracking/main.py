@@ -250,11 +250,25 @@ def process_img(hand_proc, image, calibration=None):
 
 def main():
 
+    parser = argparse.ArgumentParser(description="AmazingHand hand tracking node")
+    parser.add_argument(
+        "--camera-index",
+        type=int,
+        default=int(os.environ.get("AH_CAMERA_INDEX", "0")),
+        help="Camera index used by OpenCV (default: env AH_CAMERA_INDEX or 0)",
+    )
+    args = parser.parse_args()
+
     node = Node()
 
 
     pa.array([])  # initialize pyarrow array
-    cap = cv2.VideoCapture(1)
+    cap = cv2.VideoCapture(args.camera_index)
+    if not cap.isOpened():
+        raise RuntimeError(
+            f"Could not open camera index {args.camera_index}. "
+            "Set --camera-index 0 or 1, or AH_CAMERA_INDEX."
+        )
 
     calibration = CalibrationState(target_scale=1.3)
 

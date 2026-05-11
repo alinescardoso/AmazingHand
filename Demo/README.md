@@ -18,6 +18,27 @@
   - `dora build dataflow_angle_simu.yml --uv` (needs to be done only once)
   - `dora run dataflow_angle_simu.yml --uv`
 
+## Windows one-shot installer (interactive)
+
+From `Demo/`, run:
+
+`powershell -ExecutionPolicy Bypass -File .\install_windows_real_demo.ps1`
+
+This script:
+- installs Rust and uv (via winget, if missing)
+- installs dora-rs-cli
+- creates the Python 3.12 virtual environment (`uv venv --python 3.12`)
+- lets you choose the available demo (`dataflow_*.yml`)
+- lets you choose an available COM port (for demos that require serial)
+- lets you choose a camera index (for demos that use HandTracking)
+- updates the selected dataflow with the selected COM port when needed
+- sets `AH_CAMERA_INDEX` for the hand tracker camera index
+- starts `dora up`, runs `dora build <selected-demo> --uv`, and then `dora run <selected-demo> --uv`
+
+Non-interactive example:
+
+`powershell -ExecutionPolicy Bypass -File .\install_windows_real_demo.ps1 -NonInteractive -DemoFile dataflow_tracking_real.yml -CameraIndex 1 -ComPort COM4`
+
 
 ## Hand Setup
 

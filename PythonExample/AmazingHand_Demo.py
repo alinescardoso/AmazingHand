@@ -15,7 +15,7 @@ CloseSpeed = 3
 MiddlePos = [0, 0, 0, 0, 4, 0, -5, 1] # replace values by your calibration results
 
 c = Scs0009PyController(
-        serial_port="COM8",
+        serial_port="COM3",
         baudrate=1000000,
         timeout=0.5,
     )
