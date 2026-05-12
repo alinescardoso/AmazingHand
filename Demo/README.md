@@ -24,6 +24,14 @@ From `Demo/`, run:
 
 `powershell -ExecutionPolicy Bypass -File .\install_windows_real_demo.ps1`
 
+Or double-click the portable launcher:
+
+`Abrir_AmazingHand_Demo.cmd`
+
+To create a Desktop icon on any PC (without hardcoded project path), run:
+
+`powershell -ExecutionPolicy Bypass -File .\Criar_Atalho_AmazingHand.ps1`
+
 This script:
 - installs Rust and uv (via winget, if missing)
 - installs Python 3.12 if missing
@@ -35,6 +43,10 @@ This script:
 - lets you choose a camera index (for demos that use HandTracking)
 - updates the selected dataflow with the selected COM port when needed
 - sets `AH_CAMERA_INDEX` for the hand tracker camera index
+- opens a graphical setup window (dropdowns for demo, COM and camera)
+- uses defaults: `dataflow_tracking_real.yml`, `COM3`, `camera 0`
+- for simulation view, hides MuJoCo side panels and rotates the scene by 90 degrees
+- arranges windows with MuJoCo at the bottom and webcam at the top-right corner
 - starts `dora up`, runs `dora build <selected-demo> --uv`, and then `dora run <selected-demo> --uv`
 
 Non-interactive example:

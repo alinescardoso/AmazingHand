@@ -15,6 +15,7 @@ from loop_rate_limiters import RateLimiter
 from mink.contrib import TeleopMocap
 from pathlib import Path
 import numpy as np
+import cv2
 
 ROOT_PATH = Path(os.path.dirname(os.path.abspath(__file__))).parent
 
@@ -127,21 +128,40 @@ class Client:
 
     def run(self):
         """TODO: Add docstring."""
-        with mujoco.viewer.launch_passive(self.model, self.data) as viewer:
+        with mujoco.viewer.launch_passive(
+            self.model,
+            self.data,
+            show_left_ui=False,
+            show_right_ui=False,
+        ) as viewer:
 
-            rate = RateLimiter(frequency=1000.0)
-            # dt = rate.dt
-            # t = 0
-            self.configuration.update_from_keyframe("zero")
+            # Set viewer to fullscreen manually
+            viewer.fullscreen = True
 
-            # Initialize mocap bodies at their respective sites.
-            self.posture_task.set_target_from_configuration(self.configuration)
+            # Position the camera in the top-right corner
+            viewer.cam.lookat[0] += 0.5  # Adjust horizontal position
+            viewer.cam.lookat[1] += 0.5  # Adjust vertical position
+            viewer.cam.lookat[2] += 0.5  # Adjust depth
 
-            mink.move_mocap_to_frame(self.model, self.data, "finger1_target", "tip1", "site")
-            mink.move_mocap_to_frame(self.model, self.data, "finger2_target", "tip2", "site")
-            mink.move_mocap_to_frame(self.model, self.data, "finger3_target", "tip3", "site")
-            mink.move_mocap_to_frame(self.model, self.data, "finger4_target", "tip4", "site")
+            viewer.cam.azimuth = (viewer.cam.azimuth + 90.0) % 360.0
 
+            # Create a separate window for the camera overlay
+            cv2.namedWindow("Camera Overlay", cv2.WINDOW_NORMAL)
+            cv2.resizeWindow("Camera Overlay", 320, 240)  # Set size of the overlay window
+            cv2.moveWindow("Camera Overlay", 1600, 0)  # Move to top-right corner
+
+            while viewer.is_running():
+                # Simulate camera feed (replace with actual camera data if available)
+                camera_frame = np.zeros((240, 320, 3), dtype=np.uint8)  # Black frame
+                cv2.putText(camera_frame, "Camera Feed", (50, 120), cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2)
+
+                # Display the camera overlay
+                cv2.imshow("Camera Overlay", camera_frame)
+
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
+
+            cv2.destroyAllWindows()
 
             for event in self.node:
                 event_type = event["type"]

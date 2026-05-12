@@ -15,6 +15,7 @@ from loop_rate_limiters import RateLimiter
 from mink.contrib import TeleopMocap
 from pathlib import Path
 import numpy as np
+import cv2
 
 ROOT_PATH = Path(os.path.dirname(os.path.abspath(__file__))).parent
 
@@ -115,7 +116,8 @@ class Client:
             self.task4,
         ]
 
-
+        # Set the target for the PostureTask to avoid TargetNotSet exception
+        self.posture_task.set_target_from_configuration(self.configuration)
 
         self.model = self.configuration.model
         self.data = self.configuration.data
@@ -127,21 +129,41 @@ class Client:
 
     def run(self):
         """TODO: Add docstring."""
-        with mujoco.viewer.launch_passive(self.model, self.data) as viewer:
+        with mujoco.viewer.launch_passive(
+            self.model,
+            self.data,
+            show_left_ui=False,
+            show_right_ui=False,
+        ) as viewer:
 
+            # Initialize rate limiter
             rate = RateLimiter(frequency=1000.0)
-            # dt = rate.dt
-            # t = 0
-            self.configuration.update_from_keyframe("zero")
 
-            # Initialize mocap bodies at their respective sites.
-            self.posture_task.set_target_from_configuration(self.configuration)
+            # Set viewer to fullscreen manually
+            viewer.fullscreen = True
 
-            mink.move_mocap_to_frame(self.model, self.data, "finger1_target", "tip1", "site")
-            mink.move_mocap_to_frame(self.model, self.data, "finger2_target", "tip2", "site")
-            mink.move_mocap_to_frame(self.model, self.data, "finger3_target", "tip3", "site")
-            mink.move_mocap_to_frame(self.model, self.data, "finger4_target", "tip4", "site")
+            # Position the camera in the top-right corner
+            viewer.cam.lookat[0] += 0.5  # Adjust horizontal position
+            viewer.cam.lookat[1] += 0.5  # Adjust vertical position
+            viewer.cam.lookat[2] += 0.5  # Adjust depth
 
+            viewer.cam.azimuth = (viewer.cam.azimuth + 90.0) % 360.0
+
+            # Create a separate window for the camera overlay
+            cv2.namedWindow("Camera Overlay", cv2.WINDOW_NORMAL)
+            cv2.resizeWindow("Camera Overlay", 320, 240)  # Set size of the overlay window
+            cv2.moveWindow("Camera Overlay", 1600, 0)  # Move to top-right corner
+
+            # Further increase zoom level on the hand object
+            viewer.cam.distance *= 0.3 # Reduce the distance slightly more to zoom in
+
+            # Center the object in the view
+            viewer.cam.lookat[0] = 0  # Center horizontally
+            viewer.cam.lookat[1] = 0  # Center vertically
+            viewer.cam.lookat[2] = 0  # Center depth
+
+            # Adjust the camera to raise the view closer to 0 elevation
+            viewer.cam.elevation = -10  # Set elevation angle to 0 for a top-down view
 
             for event in self.node:
                 event_type = event["type"]
