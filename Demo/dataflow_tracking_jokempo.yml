@@ -1,0 +1,19 @@
+nodes:
+  - id: hand_tracker
+    build: uv pip install -e HandTracking
+    path: HandTracking/HandTracking/main.py
+    inputs:
+      tick: dora/timer/millis/50
+      stop: jokempo/stop
+    outputs:
+      - r_hand_pos
+      - l_hand_pos
+
+  - id: jokempo
+    path: Jokempo/Jokempo/jokempo.py
+    inputs:
+      r_hand_pos: hand_tracker/r_hand_pos
+      tick: dora/timer/millis/100
+    outputs:
+      - jokempo_result
+      - stop

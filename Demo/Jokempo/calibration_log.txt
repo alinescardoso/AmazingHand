@@ -1,0 +1,21 @@
+JOKEMPO GESTURE CALIBRATION LOG
+Date: 2026-05-17 20:19:33
+======================================================================
+
+ROCK: NO SAMPLES
+
+PAPER: NO SAMPLES
+
+SCISSORS: NO SAMPLES
+
+POINTING: NO SAMPLES
+
+MIDDLE_FINGER: NO SAMPLES
+
+OK: NO SAMPLES
+
+======================================================================
+SUGGESTED THRESHOLDS
+======================================================================
+
+

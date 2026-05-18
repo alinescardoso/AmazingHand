@@ -1,6 +1,6 @@
 param(
     [int]$CameraIndex = 0,
-    [string]$ComPort = "COM3",
+    [string]$ComPort = "COM8",
     [string]$DemoFile = "dataflow_tracking_real.yml",
     [string]$PythonVersion = "3.12",
     [switch]$SkipRun,

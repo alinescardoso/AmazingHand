@@ -286,6 +286,10 @@ def main():
             if event_type == "INPUT":
                 event_id = event["id"]
 
+                if event_id == "stop":
+                    print("[HandTracker] Stop signal received. Exiting...")
+                    break
+
                 if event_id == "tick":
                     ret, frame = cap.read()
 

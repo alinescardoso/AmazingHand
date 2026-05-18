@@ -1,0 +1,18 @@
+nodes:
+  - id: hand_tracker
+    build: uv pip install -e HandTracking
+    path: HandTracking/HandTracking/main.py
+    inputs:
+      tick: dora/timer/millis/50
+      stop: calibrator/stop
+    outputs:
+      - r_hand_pos
+      - l_hand_pos
+
+  - id: calibrator
+    path: Jokempo/calibrate_gestures.py
+    inputs:
+      r_hand_pos: hand_tracker/r_hand_pos
+      tick: dora/timer/millis/50
+    outputs:
+      - stop
